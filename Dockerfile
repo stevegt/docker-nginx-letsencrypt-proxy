@@ -1,5 +1,5 @@
 FROM nginx:latest
-LABEL maintainer="public@dpal.hu"
+LABEL maintainer="stevegt@t7a.org"
 
 RUN apt-get update -qq && \
     apt-get install software-properties-common -y
@@ -7,6 +7,8 @@ RUN apt-get update -qq && \
 RUN add-apt-repository ppa:certbot/certbot
 
 RUN apt-get install cron python-certbot-nginx -y
+
+RUN apt-get install -y iputils-ping net-tools dnsutils procps
 
 COPY example.com.conf /
 COPY crontab /

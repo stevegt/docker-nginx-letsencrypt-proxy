@@ -2,6 +2,11 @@
 
 i="1"
 
+ingress_address=$(hostname -i)
+
+nginx -s stop
+sleep 1
+
 while : ; do
     host="SERVICE_HOST_$i"
     address="SERVICE_ADDRESS_$i"
@@ -18,6 +23,7 @@ while : ; do
         certbot -n --nginx -d ${!host} --agree-tos --email $EMAIL
     else
         cp example.com.conf /etc/nginx/conf.d/${!host}.conf
+        sed -i "s|listen 80|listen $ingress_address:80|g" /etc/nginx/conf.d/${!host}.conf
         sed -i "s|example.com|${!host}|g" /etc/nginx/conf.d/${!host}.conf
         sed -i "s|0.0.0.0|${!address}|g" /etc/nginx/conf.d/${!host}.conf
         sed -i "s|0000|${!port}|g" /etc/nginx/conf.d/${!host}.conf
@@ -26,7 +32,8 @@ while : ; do
     i=$[$i+1]
 done
 
+rm -f /etc/nginx/conf.d/default.conf
+
 service cron start
 crontab /crontab
-nginx -s stop
 exec nginx -g 'daemon off;'

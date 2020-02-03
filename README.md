@@ -35,6 +35,7 @@ Before running a docker image, please ensure:
 You can use the following environment variables:
 
 * **EMAIL** - Your email address for certbot (Let's encrypt)
+* **INGRESS_ADDRESS** - Internal address of this container e.g. `172.23.45.6`
 * **SERVICE_HOST_1** - Public virtual host e.g. `api.yourdomain.com`
 * **SERVICE_ADDRESS_1** - Internal address of Docker service e.g. `api`
 * **SERVICE_PORT_1** - Internal port of your Docker service e.g. `3000`
