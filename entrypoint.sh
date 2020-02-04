@@ -7,32 +7,46 @@ ingress_address=$(hostname -i)
 nginx -s stop
 sleep 1
 
+certbot_hosts=""
+
 while : ; do
+    ingress_port="INGRESS_PORT_$i"
+    context="SERVICE_CONTEXT_$i"
     host="SERVICE_HOST_$i"
     address="SERVICE_ADDRESS_$i"
     port="SERVICE_PORT_$i"
-    if [[ -z "${!host}" || -z "${!address}" || -z "${!port}" ]] && [ ! -e /etc/nginx/conf.d/${!host}.conf ]; then
-        i=$[$i-1]
+
+    cdir=/etc/nginx/${!context}.d
+    mkdir -p $cdir
+    conf=$cdir/${!host}.conf
+
+    if [[ -z "${!context}" || -z "${!host}" || -z "${!address}" || -z "${!port}" ]] && [ !  -e $conf ]
+    then
         break
     fi
-    if [ -e /etc/letsencrypt/live/"${!host}"/fullchain.pem ] 
+
+    if [ ! -e $conf ]
+    then
+        cp ${!context}.conf $conf
+        sed -i "s|listen addr:port|listen ${ingress_address}:${!ingress_port}|g" $conf
+        sed -i "s|example.com|${!host}|g" $conf
+        sed -i "s|0.0.0.0|${!address}|g" $conf
+        sed -i "s|0000|${!port}|g" $conf
+    fi
+
+    if [ -e /etc/letsencrypt/live/"${!host}"/fullchain.pem ] && [ "${!context}" == "http" ] 
     then
         echo "Certificate is already created for host ${!host}" 
-    elif [ -e /etc/nginx/conf.d/${!host}.conf ]
-    then
-        certbot -n --nginx -d ${!host} --agree-tos --email $EMAIL
     else
-        cp example.com.conf /etc/nginx/conf.d/${!host}.conf
-        sed -i "s|listen 80|listen $ingress_address:80|g" /etc/nginx/conf.d/${!host}.conf
-        sed -i "s|example.com|${!host}|g" /etc/nginx/conf.d/${!host}.conf
-        sed -i "s|0.0.0.0|${!address}|g" /etc/nginx/conf.d/${!host}.conf
-        sed -i "s|0000|${!port}|g" /etc/nginx/conf.d/${!host}.conf
-        certbot -n --nginx -d ${!host} --agree-tos --email $EMAIL
+        certbot_hosts="$certbot_hosts ${!host}"
     fi
     i=$[$i+1]
 done
 
-rm -f /etc/nginx/conf.d/default.conf
+for host in $(echo $certbot_hosts | tr ' ' '\n' | sort -u)
+do
+    certbot $CERTBOT_FLAGS -n --nginx -d ${host} --agree-tos --email $EMAIL
+done
 
 service cron start
 crontab /crontab
