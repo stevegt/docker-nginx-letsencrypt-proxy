@@ -4,9 +4,6 @@ i="1"
 
 ingress_address=$(hostname -i)
 
-nginx -s stop
-sleep 1
-
 certbot_hosts=""
 
 while : ; do
@@ -18,7 +15,7 @@ while : ; do
 
     cdir=/etc/nginx/${!context}.d
     mkdir -p $cdir
-    conf=$cdir/${!host}.conf
+    conf=$cdir/${!host}-${!port}.conf
 
     if [[ -z "${!context}" || -z "${!host}" || -z "${!address}" || -z "${!port}" ]] && [ !  -e $conf ]
     then
@@ -32,6 +29,10 @@ while : ; do
         sed -i "s|example.com|${!host}|g" $conf
         sed -i "s|0.0.0.0|${!address}|g" $conf
         sed -i "s|0000|${!port}|g" $conf
+        if [ ${!context} == "http" ]
+        then
+            certbot_hosts="$certbot_hosts ${!host}"
+        fi
     fi
 
     if [ -e /etc/letsencrypt/live/"${!host}"/fullchain.pem ] && [ "${!context}" == "http" ] 
@@ -47,6 +48,13 @@ for host in $(echo $certbot_hosts | tr ' ' '\n' | sort -u)
 do
     certbot $CERTBOT_FLAGS -n --nginx -d ${host} --agree-tos --email $EMAIL
 done
+
+nginx -s stop
+sleep 1
+killall nginx
+sleep 1
+netstat -tulpn
+ps -eaf
 
 service cron start
 crontab /crontab

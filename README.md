@@ -1,8 +1,10 @@
 # docker-nginx-letsencrypt-proxy
 
-This [repository](https://github.com/Paldom/docker-nginx-letsencrypt-proxy) contains the Dockerfile of the [dpal/docker-nginx-letsencrypt-proxy](https://hub.docker.com/r/dpal/docker-nginx-letsencrypt-proxy/) image. 
+This repository contains the source for the [stevegt/ingress-certbot-tcp](https://hub.docker.com/r/stevegt/ingress-certbot-tcp/) image. 
 
-Quick &amp; easy HTTPS reverse proxy for your Docker services. Publish each of your Docker services and secure them with SSL certificates.
+XXX add credit for dpal/docker-nginx-letsencrypt-proxy
+
+Quick &amp; easy HTTPS and/or TCP reverse proxy for your Docker services. Publish each of your Docker services and secure them with SSL certificates, add SSH or other TCP proxies.
 
 Let's assume you have a multi-container Docker application system, that consists of an api, a website, and admin interfaces for database and for content management. You may have the following network by default in your `docker-compose.yml`:
 
@@ -11,7 +13,9 @@ Let's assume you have a multi-container Docker application system, that consists
 - web:80
 - webadmin:8080
 
-With this [dpal/docker-nginx-letsencrypt-proxy](https://hub.docker.com/r/dpal/docker-nginx-letsencrypt-proxy/) image you can easly set up an NGINX reverse proxy and generate SSL certificates with certbot for your domains or subdomains, so that you can access these virtual hosts via a secure HTTPS connection. For example with yourdomain.com:
+XXX add TCP backend example
+
+With this image you can easly set up an NGINX reverse proxy and generate SSL certificates with certbot for your domains or subdomains, so that you can access these virtual hosts via a secure HTTPS connection. For example with yourdomain.com:
 
 | ADDRESS       | VIRTUAL HOST                    |
 |---------------|---------------------------------|
@@ -35,12 +39,15 @@ Before running a docker image, please ensure:
 You can use the following environment variables:
 
 * **EMAIL** - Your email address for certbot (Let's encrypt)
-* **INGRESS_ADDRESS** - Internal address of this container e.g. `172.23.45.6`
+* **INGRESS_CONTEXT_1** - nginx config context e.g. 'http' or 'stream'
+* **INGRESS_PORT_1** - Port number this proxy will listen on e.g. `80`
 * **SERVICE_HOST_1** - Public virtual host e.g. `api.yourdomain.com`
 * **SERVICE_ADDRESS_1** - Internal address of Docker service e.g. `api`
 * **SERVICE_PORT_1** - Internal port of your Docker service e.g. `3000`
 ...
-You can define as many service you want:
+You can define as many services you want:
+* **INGRESS_CONTEXT_N** - Nth context
+* **INGRESS_PORT_N** - Nth port
 * **SERVICE_HOST_N** - Nth host
 * **SERVICE_ADDRESS_N** - Nth internal address
 * **SERVICE_PORT_N** - Nth internal port
@@ -48,6 +55,12 @@ You can define as many service you want:
 It is possible to use custom nginx `.conf` file mounted as volume (e.g. `-v ./custom.com.conf:/etc/nginx/conf.d/api.yourdomain.com.conf`). `SERVICE_ADDRESS_N` and `SERVICE_PORT_N` propeties are not required in that case, you should only specify host name (`SERVICE_HOST_N`).
 
 ### Examples
+
+XXX all examples below here are missing the INGRESS_CONTEXT and
+INGRESS_PORT bits -- they were added later and examples not updated
+
+XXX all examples below here need image name replaced with stevegt/ingress-certbot-tcp
+
 
 #### 1. Proxy services from a docker network
 Here's a simple `docker-compose.yml` to try this image with your domain. `service1` and `service2` are dummy services running in docker network. 
